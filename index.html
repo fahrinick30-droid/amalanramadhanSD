@@ -9,8 +9,8 @@
     const DEFAULT_CONFIG = {
         app_title: "Amalan Ramadhan Siswa",
         bank_name: "BANK RAKYAT INDONESIA (BRI)",
-        bank_account: "1234567890 a/n AdminKU",
-        registration_fee: "Rp. 100.000",
+        bank_account: "442501021684538 a/n Siti Nurjanah",
+        registration_fee: "Rp. 50.000",
         master_password: "admin"
     };
 
@@ -161,7 +161,7 @@
             if (k === 'Tarawih' && typeof data === 'object' && data !== null) return `Status: <b>${data.status || '-'}</b>, Lokasi: <b>${data.tempat || '-'}</b>`;
             if (k === 'Puasa') return `Status: <b>${typeof data === 'string' ? data : (data.status || '-')}</b>`;
             if (k === 'Tadarus' && typeof data === 'object' && data !== null) return `Metode: <b>${data.pilihan || '-'}</b>, Surat: <b>${data.surat || '-'}</b> (Ayat ${data.ayat || '-'})`;
-            if (k === 'Ceramah' && typeof data === 'object' && data !== null) return `Penceramah: <b>${data.penceramah || '-'}</b>, Lokasi: <b>${data.tempat || '-'}</b>`;
+            if (k === 'Ceramah' && typeof data === 'object' && data !== null) return `Penceramah: <b>${data.penceramah || '-'}</b>, Lokasi: <b>${data.tempat || '-'}</b><br><span class="italic text-slate-500">Ringkasan: ${data.ringkasan || '-'}</span>`;
             return typeof data === 'string' ? data : JSON.stringify(data);
         }
 
@@ -419,7 +419,7 @@
             await fetchGlobalSettings();
             const config = window.elementSdk.config;
             let opts = `<option value="">Pilih Kelas</option>`;
-            // Sederhanakan kelas menjadi hanya 4, 5, dan 6
+            // Pilihan kelas disederhanakan hanya 4, 5, 6
             ['4','5','6'].forEach(g => { 
                 opts += `<option value="${g}">${g}</option>`; 
             });
@@ -581,7 +581,7 @@
                         <div class="space-y-6 text-center">
                             ${categories.map(cat => {
                                 const items = data.filter(r => r.kategori === cat).sort((a,b) => parseInt(a.tanggal) - parseInt(b.tanggal));
-                                return `<div class="bg-white rounded-2xl shadow-md overflow-hidden border text-left text-center"><div class="p-4 bg-emerald-50 border-b flex justify-between items-center"><span class="font-black text-emerald-800 uppercase">${getCategoryIcon(cat)} ${cat}</span><span class="text-[10px] font-bold text-emerald-600 bg-white px-2 py-1 rounded-full border">${items.length} Data</span></div><div class="p-4 space-y-2 text-left">${items.length > 0 ? items.map(r => `<div class="text-xs p-2 border-b last:border-0"><b>Hari ${r.tanggal}:</b> ${renderDetailText(cat, r.detail)}</div>`).join('') : '<p class="text-xs text-gray-300 italic p-2">Belum ada data.</p>'}</div></div>`;
+                                return `<div class="bg-white rounded-2xl shadow-md overflow-hidden border text-left text-center"><div class="p-4 bg-emerald-50 border-b flex justify-between items-center"><span class="font-black text-emerald-800 uppercase">${getCategoryIcon(cat)} ${cat}</span><span class="text-[10px] font-bold text-emerald-600 bg-white px-2 py-1 rounded-full border">${items.length} Data</span></div><div class="p-4 space-y-2 text-left text-center">${items.length > 0 ? items.map(r => `<div class="text-xs p-2 border-b last:border-0"><b>Hari ${r.tanggal}:</b> ${renderDetailText(cat, r.detail)}</div>`).join('') : '<p class="text-xs text-gray-300 italic p-2">Belum ada data.</p>'}</div></div>`;
                             }).join('')}
                         </div>
                     </div>
@@ -596,7 +596,10 @@
                 url.searchParams.append('ss_id', SCHOOL_ID);
                 const res = await fetch(url);
                 const result = await res.json();
-                if(result.status === 'success') { allRecords = result.data; renderLaporanPanel(allRecords); }
+                if(result.status === 'success') { 
+                    allRecords = result.data; 
+                    renderLaporanPanel(allRecords); 
+                }
             } catch(e) { showToast("Gagal.", false); }
         }
 
@@ -643,6 +646,7 @@
         }
 
         function showStudentDetailView(student, allData) {
+            // allData yang masuk sudah merupakan data gabungan/terpilih (getMergedRecords)
             const data = allData.filter(r => r.nama === student.nama && r.kelas === student.kelas);
             document.getElementById('app').innerHTML = `
                 <div class="min-h-screen bg-slate-50 p-6 text-slate-800 text-center">
@@ -654,7 +658,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
                             ${categories.map(cat => {
                                 const items = data.filter(r => r.kategori === cat).sort((a,b) => parseInt(a.tanggal) - parseInt(b.tanggal));
-                                return `<div class="bg-white p-6 rounded-2xl shadow-sm border text-left text-center"><h3 class="font-black border-b pb-2 mb-4 text-slate-700 uppercase text-left">${getCategoryIcon(cat)} ${cat}</h3><div class="space-y-2 text-left">${items.length ? items.map(r => `<div class="text-[10px] p-3 bg-slate-50 rounded-lg border border-slate-100"><b>HARI ${r.tanggal}:</b><br>${renderDetailText(cat, r.detail)}</div>`).join('') : '<p class="text-xs text-gray-300">Belum ada data.</p>'}</div></div>`;
+                                return `<div class="bg-white p-6 rounded-2xl shadow-sm border text-left text-center"><h3 class="font-black border-b pb-2 mb-4 text-slate-700 uppercase text-left">${getCategoryIcon(cat)} ${cat}</h3><div class="space-y-2 text-left text-center">${items.length ? items.map(r => `<div class="text-[10px] p-3 bg-slate-50 rounded-lg border border-slate-100"><b>HARI ${r.tanggal}:</b><br>${renderDetailText(cat, r.detail)}</div>`).join('') : '<p class="text-xs text-gray-300">Belum ada data.</p>'}</div></div>`;
                             }).join('')}
                         </div>
                     </div>
@@ -666,7 +670,6 @@
         function handleCetakGlobal(ting, kel, allData) {
             const printWindow = window.open('', '_blank');
             let students = [...new Set(allData.map(r => JSON.stringify({nama: r.nama, kelas: r.kelas})))].map(s => JSON.parse(s));
-            if(ting !== 'all') students = students.filter(s => s.kelas.startsWith(ting));
             if(kel !== 'all') students = students.filter(s => s.kelas === kel);
             students.sort((a,b) => a.nama.localeCompare(b.nama));
             let html = `<html><head><title>Laporan Global</title><style>body{font-family:Arial;padding:30px;font-size:12px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #000;padding:8px;text-align:center}.header{text-align:center;margin-bottom:30px}</style></head><body><div class="header"><h2>REKAPITULASI AMALAN RAMADHAN SISWA</h2><div>Kelas: ${kel}</div></div><table><thead><tr><th>No</th><th>Nama Siswa</th><th>Kelas</th><th>Total Data</th><th>Status</th></tr></thead><tbody>`;
