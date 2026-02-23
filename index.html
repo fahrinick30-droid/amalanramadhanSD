@@ -419,11 +419,9 @@
             await fetchGlobalSettings();
             const config = window.elementSdk.config;
             let opts = `<option value="">Pilih Kelas</option>`;
+            // Sederhanakan kelas menjadi hanya 4, 5, dan 6
             ['4','5','6'].forEach(g => { 
-                ['A','B','C','D','E','F','G','H','I','J'].forEach(s => { 
-                    const k = `${g}${s}`;
-                    opts += `<option value="${k}">${k}</option>`; 
-                }); 
+                opts += `<option value="${g}">${g}</option>`; 
             });
             document.getElementById('app').innerHTML = `
                 <div class="min-h-screen bg-emerald-600 flex items-center justify-center p-4">
