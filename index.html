@@ -374,7 +374,7 @@
             document.getElementById('regForm').onsubmit = async (e) => {
                 e.preventDefault();
                 const btn = document.getElementById('btnNextStep');
-                btn.disabled = true; btn.innerHTML = `<div class="flex items-center justify-center gap-3"><div class="loader"></div><span>MEMPROSES...</span></div>`;
+                btn.disabled = true; btn.innerHTML = `<div class="flex items-center justify-center gap-3 text-center"><div class="loader"></div><span>MEMPROSES...</span></div>`;
                 try {
                     const latestConfig = await fetchGlobalSettings();
                     const accParts = latestConfig.bank_account.split(' a/n ');
@@ -394,7 +394,7 @@
                 const file = document.getElementById('proofImg').files[0];
                 if(!file) return showToast("Pilih bukti!", false);
                 const btn = document.getElementById('confirmBtn');
-                btn.disabled = true; btn.innerHTML = `<div class="flex items-center justify-center gap-2"><div class="loader"></div><span>MENGIRIM...</span></div>`;
+                btn.disabled = true; btn.innerHTML = `<div class="flex items-center justify-center gap-2 text-center"><div class="loader"></div><span>MENGIRIM...</span></div>`;
                 const reader = new FileReader();
                 reader.onload = async (event) => {
                     const base64Img = event.target.result;
@@ -461,7 +461,7 @@
                 
                 const originalBtnHtml = btn.innerHTML;
                 btn.disabled = true;
-                btn.innerHTML = `<div class="flex items-center justify-center gap-2"><div class="loader"></div><span>Menghubungkan...</span></div>`;
+                btn.innerHTML = `<div class="flex items-center justify-center gap-2 text-center"><div class="loader"></div><span>Menghubungkan...</span></div>`;
                 try {
                     currentUser = { nama_lengkap: n, kelas: k, role: 'siswa' }; 
                     await syncUserFromCloud(); 
@@ -486,8 +486,13 @@
                 const response = await fetch(url);
                 const result = await response.json();
                 if (result.status === 'success' && Array.isArray(result.data)) {
-                    cloudRecords = result.data;
-                    result.data.forEach(item => {
+                    // Normalisasi field detail/hadir agar konsisten
+                    cloudRecords = result.data.map(item => ({
+                        ...item,
+                        detail: item.detail || item.hadir
+                    }));
+                    
+                    cloudRecords.forEach(item => {
                         const tgl = parseInt(item.tanggal);
                         if(isNaN(tgl)) return;
                         const cat = item.kategori;
@@ -533,7 +538,7 @@
             const area = document.getElementById('contentArea');
             const days = Array.from({length: 30}, (_, i) => i + 1);
             if (currentTab === 'Shalat Fardu') {
-                area.innerHTML = `<div class="space-y-8">${days.map(t => `
+                area.innerHTML = `<div class="space-y-8 text-center">${days.map(t => `
                     <div class="p-6 border rounded-2xl bg-white shadow-sm border-l-8 border-emerald-500 text-center">
                         <h3 class="font-black text-emerald-800 mb-4 text-sm text-center">📅 HARI KE-${t}</h3>
                         <div class="space-y-4 text-left">
@@ -548,13 +553,13 @@
                         </div>
                     </div>`).join('')}</div>`;
             } else if (currentTab === 'Tarawih') {
-                area.innerHTML = `<div class="space-y-6">${days.map(t => `<div class="p-6 border rounded-2xl border-l-8 border-indigo-500 text-center"><h3 class="font-black text-indigo-900 mb-4 text-sm text-center">📅 HARI KE-${t}</h3><div class="flex flex-wrap gap-2 justify-center mb-4">${['berjamaah','munfarid','tidak mengerjakan','sakit','haid'].map(s => `<button class="px-3 py-2 text-[10px] border rounded-xl font-bold uppercase ${tarawihData[t]?.status === s ? 'bg-indigo-600 text-white' : 'bg-white text-gray-400'}" onclick="tarawihData[${t}].status='${s}'; renderContentArea();">${s}</button>`).join('')}</div><div class="flex gap-2 justify-center mb-4">${['mesjid','rumah'].map(tmp => `<button class="px-4 py-2 text-[10px] border rounded-xl font-bold uppercase ${tarawihData[t]?.tempat === tmp ? 'bg-indigo-600 text-white' : 'bg-white text-gray-400'}" onclick="tarawihData[${t}].tempat='${tmp}'; renderContentArea();">${tmp}</button>`).join('')}</div><button class="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase shadow-md" onclick="handleSimpanAmalan(${t}, 'Tarawih', tarawihData[${t}])">SIMPAN TARAWIH</button></div>`).join('')}</div>`;
+                area.innerHTML = `<div class="space-y-6 text-center">${days.map(t => `<div class="p-6 border rounded-2xl border-l-8 border-indigo-500 text-center"><h3 class="font-black text-indigo-900 mb-4 text-sm text-center">📅 HARI KE-${t}</h3><div class="flex flex-wrap gap-2 justify-center mb-4">${['berjamaah','munfarid','tidak mengerjakan','sakit','haid'].map(s => `<button class="px-3 py-2 text-[10px] border rounded-xl font-bold uppercase ${tarawihData[t]?.status === s ? 'bg-indigo-600 text-white' : 'bg-white text-gray-400'}" onclick="tarawihData[${t}].status='${s}'; renderContentArea();">${s}</button>`).join('')}</div><div class="flex gap-2 justify-center mb-4">${['mesjid','rumah'].map(tmp => `<button class="px-4 py-2 text-[10px] border rounded-xl font-bold uppercase ${tarawihData[t]?.tempat === tmp ? 'bg-indigo-600 text-white' : 'bg-white text-gray-400'}" onclick="tarawihData[${t}].tempat='${tmp}'; renderContentArea();">${tmp}</button>`).join('')}</div><button class="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase shadow-md" onclick="handleSimpanAmalan(${t}, 'Tarawih', tarawihData[${t}])">SIMPAN TARAWIH</button></div>`).join('')}</div>`;
             } else if (currentTab === 'Puasa') {
-                area.innerHTML = `<div class="space-y-4">${days.map(t => `<div class="p-6 border rounded-2xl border-l-8 border-orange-500 text-center"><h3 class="font-black text-orange-900 mb-4 text-sm text-center">📅 HARI KE-${t}</h3><div class="flex flex-wrap gap-2 justify-center mb-4">${['mengerjakan','tidak mengerjakan','sakit','haid'].map(s => `<button class="px-4 py-2 text-[10px] border rounded-xl font-bold uppercase ${puasaData[t] === s ? 'bg-orange-500 text-white' : 'bg-white text-gray-400'}" onclick="puasaData[${t}]='${s}'; renderContentArea();">${s}</button>`).join('')}</div><button class="w-full py-3 bg-orange-500 text-white rounded-xl font-black text-xs uppercase shadow-md" onclick="handleSimpanAmalan(${t}, 'Puasa', puasaData[${t}])">SIMPAN PUASA</button></div>`).join('')}</div>`;
+                area.innerHTML = `<div class="space-y-4 text-center">${days.map(t => `<div class="p-6 border rounded-2xl border-l-8 border-orange-500 text-center"><h3 class="font-black text-orange-900 mb-4 text-sm text-center">📅 HARI KE-${t}</h3><div class="flex flex-wrap gap-2 justify-center mb-4">${['mengerjakan','tidak mengerjakan','sakit','haid'].map(s => `<button class="px-4 py-2 text-[10px] border rounded-xl font-bold uppercase ${puasaData[t] === s ? 'bg-orange-500 text-white' : 'bg-white text-gray-400'}" onclick="puasaData[${t}]='${s}'; renderContentArea();">${s}</button>`).join('')}</div><button class="w-full py-3 bg-orange-500 text-white rounded-xl font-black text-xs uppercase shadow-md" onclick="handleSimpanAmalan(${t}, 'Puasa', puasaData[${t}])">SIMPAN PUASA</button></div>`).join('')}</div>`;
             } else if (currentTab === 'Tadarus') {
-                area.innerHTML = `<div class="space-y-6">${days.map(t => `<div class="p-6 border rounded-2xl border-l-8 border-blue-500 text-left text-slate-800 text-center"><h3 class="font-black text-blue-900 mb-4 text-sm text-center">📅 HARI KE-${t}</h3><div class="flex gap-2 justify-center mb-4">${['sendiri','ustadz'].map(m => `<button class="px-4 py-2 text-[10px] border rounded-xl font-bold uppercase ${tadarusData[t]?.pilihan === m ? 'bg-blue-600 text-white' : 'bg-white text-gray-400'}" onclick="tadarusData[${t}].pilihan='${m}'; renderContentArea();">${m === 'sendiri' ? 'Mandiri' : 'Bersama Ustadz'}</button>`).join('')}</div><div class="grid grid-cols-2 gap-3 mb-4"><input type="text" class="p-3 border rounded-xl text-xs outline-none focus:border-blue-500 font-bold text-slate-800" placeholder="Nama Surat" value="${tadarusData[t]?.surat || ''}" oninput="tadarusData[${t}].surat=this.value"><input type="text" class="p-3 border rounded-xl text-xs outline-none focus:border-blue-500 font-bold text-slate-800" placeholder="Ayat" value="${tadarusData[t]?.ayat || ''}" oninput="tadarusData[${t}].ayat=this.value"></div><button class="w-full py-3 bg-blue-600 text-white rounded-xl font-black text-xs uppercase shadow-md" onclick="handleSimpanAmalan(${t}, 'Tadarus', tadarusData[${t}])">SIMPAN TADARUS</button></div>`).join('')}</div>`;
+                area.innerHTML = `<div class="space-y-6 text-center">${days.map(t => `<div class="p-6 border rounded-2xl border-l-8 border-blue-500 text-left text-slate-800 text-center"><h3 class="font-black text-blue-900 mb-4 text-sm text-center">📅 HARI KE-${t}</h3><div class="flex gap-2 justify-center mb-4">${['sendiri','ustadz'].map(m => `<button class="px-4 py-2 text-[10px] border rounded-xl font-bold uppercase ${tadarusData[t]?.pilihan === m ? 'bg-blue-600 text-white' : 'bg-white text-gray-400'}" onclick="tadarusData[${t}].pilihan='${m}'; renderContentArea();">${m === 'sendiri' ? 'Mandiri' : 'Bersama Ustadz'}</button>`).join('')}</div><div class="grid grid-cols-2 gap-3 mb-4"><input type="text" class="p-3 border rounded-xl text-xs outline-none focus:border-blue-500 font-bold text-slate-800" placeholder="Nama Surat" value="${tadarusData[t]?.surat || ''}" oninput="tadarusData[${t}].surat=this.value"><input type="text" class="p-3 border rounded-xl text-xs outline-none focus:border-blue-500 font-bold text-slate-800" placeholder="Ayat" value="${tadarusData[t]?.ayat || ''}" oninput="tadarusData[${t}].ayat=this.value"></div><button class="w-full py-3 bg-blue-600 text-white rounded-xl font-black text-xs uppercase shadow-md" onclick="handleSimpanAmalan(${t}, 'Tadarus', tadarusData[${t}])">SIMPAN TADARUS</button></div>`).join('')}</div>`;
             } else if (currentTab === 'Ceramah') {
-                area.innerHTML = `<div class="space-y-6">${days.map(t => `<div class="p-6 border rounded-2xl border-l-8 border-rose-500 text-left text-slate-800 text-center"><h3 class="font-black text-rose-900 mb-4 text-sm text-center">📅 HARI KE-${t}</h3><div class="space-y-3"><input type="text" class="w-full p-3 border rounded-xl text-xs outline-none focus:border-rose-500 font-bold text-slate-800" placeholder="Nama Penceramah" value="${ceramahData[t]?.penceramah || ''}" oninput="ceramahData[${t}].penceramah=this.value"><input type="text" class="w-full p-3 border rounded-xl text-xs outline-none focus:border-rose-500 font-bold text-slate-800" placeholder="Tempat / Media" value="${ceramahData[t]?.tempat || ''}" oninput="ceramahData[${t}].tempat=this.value"><textarea class="w-full p-3 border rounded-xl text-xs outline-none focus:border-rose-500 h-20 font-bold text-slate-800" placeholder="Ringkasan isi ceramah..." oninput="ceramahData[${t}].ringkasan=this.value">${ceramahData[t]?.ringkasan || ''}</textarea></div><button class="w-full py-3 mt-4 bg-rose-600 text-white rounded-xl font-black text-xs uppercase shadow-md" onclick="handleSimpanAmalan(${t}, 'Ceramah', ceramahData[${t}])">SIMPAN CERAMAH</button></div>`).join('')}</div>`;
+                area.innerHTML = `<div class="space-y-6 text-center">${days.map(t => `<div class="p-6 border rounded-2xl border-l-8 border-rose-500 text-left text-slate-800 text-center"><h3 class="font-black text-rose-900 mb-4 text-sm text-center">📅 HARI KE-${t}</h3><div class="space-y-3"><input type="text" class="w-full p-3 border rounded-xl text-xs outline-none focus:border-rose-500 font-bold text-slate-800" placeholder="Nama Penceramah" value="${ceramahData[t]?.penceramah || ''}" oninput="ceramahData[${t}].penceramah=this.value"><input type="text" class="w-full p-3 border rounded-xl text-xs outline-none focus:border-rose-500 font-bold text-slate-800" placeholder="Tempat / Media" value="${ceramahData[t]?.tempat || ''}" oninput="ceramahData[${t}].tempat=this.value"><textarea class="w-full p-3 border rounded-xl text-xs outline-none focus:border-rose-500 h-20 font-bold text-slate-800" placeholder="Ringkasan isi ceramah..." oninput="ceramahData[${t}].ringkasan=this.value">${ceramahData[t]?.ringkasan || ''}</textarea></div><button class="w-full py-3 mt-4 bg-rose-600 text-white rounded-xl font-black text-xs uppercase shadow-md" onclick="handleSimpanAmalan(${t}, 'Ceramah', ceramahData[${t}])">SIMPAN CERAMAH</button></div>`).join('')}</div>`;
             }
         }
 
@@ -584,7 +589,7 @@
                         <div class="space-y-6 text-center">
                             ${categories.map(cat => {
                                 const items = data.filter(r => r.kategori === cat).sort((a,b) => parseInt(a.tanggal) - parseInt(b.tanggal));
-                                return `<div class="bg-white rounded-2xl shadow-md overflow-hidden border text-left text-center"><div class="p-4 bg-emerald-50 border-b flex justify-between items-center"><span class="font-black text-emerald-800 uppercase">${getCategoryIcon(cat)} ${cat}</span><span class="text-[10px] font-bold text-emerald-600 bg-white px-2 py-1 rounded-full border">${items.length} Data</span></div><div class="p-4 space-y-2 text-left text-center">${items.length > 0 ? items.map(r => `<div class="text-xs p-2 border-b last:border-0"><b>Hari ${r.tanggal}:</b> ${renderDetailText(cat, r.detail)}</div>`).join('') : '<p class="text-xs text-gray-300 italic p-2">Belum ada data.</p>'}</div></div>`;
+                                return `<div class="bg-white rounded-2xl shadow-md overflow-hidden border text-left text-center"><div class="p-4 bg-emerald-50 border-b flex justify-between items-center"><span class="font-black text-emerald-800 uppercase">${getCategoryIcon(cat)} ${cat}</span><span class="text-[10px] font-bold text-emerald-600 bg-white px-2 py-1 rounded-full border text-center">${items.length} Data</span></div><div class="p-4 space-y-2 text-left text-center">${items.length > 0 ? items.map(r => `<div class="text-xs p-2 border-b last:border-0 text-center"><b>Hari ${r.tanggal}:</b> ${renderDetailText(cat, r.detail || r.hadir)}</div>`).join('') : '<p class="text-xs text-gray-300 italic p-2 text-center">Belum ada data.</p>'}</div></div>`;
                             }).join('')}
                         </div>
                     </div>
@@ -600,7 +605,11 @@
                 const res = await fetch(url);
                 const result = await res.json();
                 if(result.status === 'success') { 
-                    allRecords = result.data; 
+                    // Normalisasi data dari spreadsheet: pastikan properti 'detail' berisi data rekapan
+                    allRecords = result.data.map(item => ({
+                        ...item,
+                        detail: item.detail || item.hadir
+                    }));
                     renderLaporanPanel(allRecords); 
                 }
             } catch(e) { showToast("Gagal.", false); }
@@ -614,19 +623,19 @@
                 <div class="min-h-screen bg-slate-100 p-4 md:p-6 text-slate-800 text-center">
                     <div class="max-w-6xl mx-auto text-center">
                         <div class="bg-white p-8 rounded-2xl shadow-xl mb-6 flex flex-col md:flex-row justify-between items-center gap-4 border-b-4 border-emerald-500 text-center">
-                            <div><h1 class="text-3xl font-black uppercase tracking-tight leading-none text-slate-800">Panel Rekap Guru</h1><p class="text-xs text-slate-400 font-bold mt-1 text-left">Penyajian Data Sekolah</p></div>
-                            <div class="flex flex-wrap gap-2">
-                                <button id="cetakGlobalBtn" class="px-5 py-3 bg-emerald-600 text-white rounded-xl font-bold shadow-lg uppercase text-xs">🖨️ Cetak Laporan</button>
-                                <button onclick="location.reload()" class="px-5 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg uppercase text-xs">Keluar</button>
+                            <div><h1 class="text-3xl font-black uppercase tracking-tight leading-none text-slate-800">Panel Rekap Guru</h1><p class="text-xs text-slate-400 font-bold mt-1 text-left text-center">Penyajian Data Sekolah</p></div>
+                            <div class="flex flex-wrap gap-2 text-center">
+                                <button id="cetakGlobalBtn" class="px-5 py-3 bg-emerald-600 text-white rounded-xl font-bold shadow-lg uppercase text-xs text-center">🖨️ Cetak Laporan</button>
+                                <button onclick="location.reload()" class="px-5 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg uppercase text-xs text-center">Keluar</button>
                             </div>
                         </div>
-                        <div class="bg-white p-6 rounded-2xl shadow-md mb-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div><label class="block text-[10px] font-black text-gray-400 mb-1 uppercase text-left">Filter Kelas</label><select id="fKelas" class="w-full p-2 border-2 rounded-xl outline-none focus:border-emerald-500 font-bold text-left"><option value="all">Semua</option>${classList.map(k => `<option value="${k}">${k}</option>`).join('')}</select></div>
-                                <div><label class="block text-[10px] font-black text-gray-400 mb-1 uppercase text-left">Cari Nama</label><input type="text" id="fNama" class="w-full p-2 border-2 rounded-xl outline-none focus:border-emerald-500 font-bold text-left" placeholder="Ketik nama..."></div>
+                        <div class="bg-white p-6 rounded-2xl shadow-md mb-6 text-center">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+                                <div class="text-center"><label class="block text-[10px] font-black text-gray-400 mb-1 uppercase text-left text-center">Filter Kelas</label><select id="fKelas" class="w-full p-2 border-2 rounded-xl outline-none focus:border-emerald-500 font-bold text-left text-center"><option value="all">Semua</option>${classList.map(k => `<option value="${k}">${k}</option>`).join('')}</select></div>
+                                <div class="text-center"><label class="block text-[10px] font-black text-gray-400 mb-1 uppercase text-left text-center">Cari Nama</label><input type="text" id="fNama" class="w-full p-2 border-2 rounded-xl outline-none focus:border-emerald-500 font-bold text-left text-center" placeholder="Ketik nama..."></div>
                             </div>
                         </div>
-                        <div id="studentGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                        <div id="studentGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-center"></div>
                     </div>
                 </div>`;
             const grid = document.getElementById('studentGrid');
@@ -638,8 +647,8 @@
                     const m3 = s.nama.toLowerCase().includes(nam);
                     return m2 && m3;
                 });
-                if (filtered.length === 0) { grid.innerHTML = `<div class="col-span-full p-12 bg-white rounded-2xl text-center text-gray-400 italic">Siswa tidak ditemukan.</div>`; return; }
-                grid.innerHTML = filtered.map(s => `<div class="bg-white p-5 rounded-2xl shadow-sm border hover:border-emerald-500 cursor-pointer transition-all student-card" data-n="${s.nama}" data-k="${s.kelas}"><div class="flex justify-between items-start"><div><h3 class="font-black text-gray-800 uppercase text-left">${s.nama}</h3><p class="text-xs font-bold text-emerald-600 mt-1 uppercase text-left">Kelas: ${s.kelas}</p></div><span class="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg font-bold border border-emerald-100 uppercase">Detail</span></div></div>`).join('');
+                if (filtered.length === 0) { grid.innerHTML = `<div class="col-span-full p-12 bg-white rounded-2xl text-center text-gray-400 italic text-center">Siswa tidak ditemukan.</div>`; return; }
+                grid.innerHTML = filtered.map(s => `<div class="bg-white p-5 rounded-2xl shadow-sm border hover:border-emerald-500 cursor-pointer transition-all student-card text-center" data-n="${s.nama}" data-k="${s.kelas}"><div class="flex justify-between items-start text-center"><div><h3 class="font-black text-gray-800 uppercase text-left text-center">${s.nama}</h3><p class="text-xs font-bold text-emerald-600 mt-1 uppercase text-left text-center">Kelas: ${s.kelas}</p></div><span class="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg font-bold border border-emerald-100 uppercase text-center">Detail</span></div></div>`).join('');
                 grid.querySelectorAll('.student-card').forEach(c => c.onclick = () => showStudentDetailView({ nama: c.dataset.n, kelas: c.dataset.k }, data));
             };
             document.getElementById('fKelas').onchange = filterData;
@@ -654,13 +663,13 @@
                 <div class="min-h-screen bg-slate-50 p-6 text-slate-800 text-center">
                     <div class="max-w-4xl mx-auto text-center">
                         <div class="bg-white p-6 rounded-2xl shadow-xl mb-6 flex flex-col md:flex-row justify-between items-center gap-4 text-center">
-                            <div class="text-left"><h2 class="font-black text-2xl text-slate-800 uppercase text-left">${student.nama}</h2><p class="font-bold text-emerald-600 uppercase text-left">Kelas: ${student.kelas}</p></div>
-                            <div class="flex gap-2"><button id="cetakIndv" class="px-5 py-2 bg-emerald-600 text-white rounded-xl font-bold shadow-md uppercase text-xs">🖨️ Cetak</button><button id="backAdmin" class="px-5 py-2 bg-slate-800 text-white rounded-xl font-bold shadow-md uppercase text-xs">← Kembali</button></div>
+                            <div class="text-left text-center"><h2 class="font-black text-2xl text-slate-800 uppercase text-left text-center">${student.nama}</h2><p class="font-bold text-emerald-600 uppercase text-left text-center">Kelas: ${student.kelas}</p></div>
+                            <div class="flex gap-2 text-center"><button id="cetakIndv" class="px-5 py-2 bg-emerald-600 text-white rounded-xl font-bold shadow-md uppercase text-xs text-center">🖨️ Cetak</button><button id="backAdmin" class="px-5 py-2 bg-slate-800 text-white rounded-xl font-bold shadow-md uppercase text-xs text-center">← Kembali</button></div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
                             ${categories.map(cat => {
                                 const items = data.filter(r => r.kategori === cat).sort((a,b) => parseInt(a.tanggal) - parseInt(b.tanggal));
-                                return `<div class="bg-white p-6 rounded-2xl shadow-sm border text-left text-center"><h3 class="font-black border-b pb-2 mb-4 text-slate-700 uppercase text-left">${getCategoryIcon(cat)} ${cat}</h3><div class="space-y-2 text-left text-center">${items.length ? items.map(r => `<div class="text-[10px] p-3 bg-slate-50 rounded-lg border border-slate-100"><b>HARI ${r.tanggal}:</b><br>${renderDetailText(cat, r.detail)}</div>`).join('') : '<p class="text-xs text-gray-300">Belum ada data.</p>'}</div></div>`;
+                                return `<div class="bg-white p-6 rounded-2xl shadow-sm border text-left text-center"><h3 class="font-black border-b pb-2 mb-4 text-slate-700 uppercase text-left text-center">${getCategoryIcon(cat)} ${cat}</h3><div class="space-y-2 text-left text-center">${items.length ? items.map(r => `<div class="text-[10px] p-3 bg-slate-50 rounded-lg border border-slate-100 text-center"><b>HARI ${r.tanggal}:</b><br>${renderDetailText(cat, r.detail || r.hadir)}</div>`).join('') : '<p class="text-xs text-gray-300 text-center">Belum ada data.</p>'}</div></div>`;
                             }).join('')}
                         </div>
                     </div>
@@ -685,7 +694,7 @@
             let html = `<html><head><title>Laporan Individual</title><style>body{font-family:Arial;padding:40px;font-size:12px}.header{text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-bottom:20px}th,td{border:1px solid #000;padding:6px;text-align:left}</style></head><body><div class="header"><h2>LAPORAN AMALAN RAMADHAN SISWA</h2><div>TAHUN PELAJARAN 2025/2026</div></div><p><b>NAMA:</b> ${student.nama.toUpperCase()}<br><b>KELAS:</b> ${student.kelas}</p>`;
             categories.forEach(cat => {
                 const items = data.filter(r => r.kategori === cat).sort((a,b) => parseInt(a.tanggal) - parseInt(b.tanggal));
-                if(items.length > 0) { html += `<h3>${cat}</h3><table><thead><tr><th width="60" align="center">Hari</th><th>Detail Amalan</th></tr></thead><tbody>`; items.forEach(r => html += `<tr><td align="center">${r.tanggal}</td><td>${renderDetailText(cat, r.detail)}</td></tr>`); html += `</tbody></table>`; }
+                if(items.length > 0) { html += `<h3>${cat}</h3><table><thead><tr><th width="60" align="center">Hari</th><th>Detail Amalan</th></tr></thead><tbody>`; items.forEach(r => html += `<tr><td align="center">${r.tanggal}</td><td>${renderDetailText(cat, r.detail || r.hadir)}</td></tr>`); html += `</tbody></table>`; }
             });
             html += `<div style="margin-top:50px;text-align:right">Sumedang, ${new Date().toLocaleDateString('id-ID')}<br><br><br><br>( ............................... )</div><script>window.print();<\/script></body></html>`;
             printWindow.document.write(html); printWindow.document.close();
