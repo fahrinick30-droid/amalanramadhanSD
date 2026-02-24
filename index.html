@@ -6,7 +6,6 @@
   <title>Amalan Ramadhan Siswa</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Konfigurasi default aplikasi
     const DEFAULT_CONFIG = {
         app_title: "Amalan Ramadhan Siswa",
         bank_name: "BANK RAKYAT INDONESIA (BRI)",
@@ -15,7 +14,6 @@
         master_password: "admin"
     };
 
-    // URL Backend (Google Apps Script)
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx7IjJZdiHITMGhSMSWWneT1E9qIWUOBwkuJv4krc4_IPk-pQYA1hgFXyNfMu9oKjr6Bw/exec';
 
     const loadLocalConfig = () => {
@@ -104,6 +102,7 @@
 
         // --- STATE ---
         let SCHOOL_ID = getSchoolId();
+        let schoolName = "Akses Aplikasi Siswa"; // Default subtitle
         let currentUser = null;
         let currentTab = 'Shalat Fardu';
         let currentAdminTab = 'config'; 
@@ -176,6 +175,22 @@
                 if (data.status === 'success') { window.elementSdk.setConfig(data.config); return data.config; }
             } catch (e) { console.warn("Sync failed."); }
             return window.elementSdk.config;
+        }
+
+        // Fungsi baru untuk mendapatkan nama sekolah pendaftar secara otomatis
+        async function fetchCurrentSchoolName() {
+            if (!SCHOOL_ID) return;
+            try {
+                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getTeachersList`);
+                const data = await res.json();
+                if (data.status === 'success' && Array.isArray(data.teachers)) {
+                    // Mencari sekolah yang memiliki ID Spreadsheet yang sama dengan URL
+                    const schoolData = data.teachers.find(t => t.ss_id === SCHOOL_ID);
+                    if (schoolData) {
+                        schoolName = schoolData.school;
+                    }
+                }
+            } catch (e) { console.warn("Gagal memuat nama sekolah."); }
         }
 
         async function updatePendingBadges() {
@@ -430,7 +445,8 @@
                 <div class="min-h-screen bg-emerald-600 flex items-center justify-center p-4">
                     <div class="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-8 animate-in fade-in zoom-in duration-500 text-center text-slate-800">
                         <h1 class="text-3xl font-black text-emerald-800 mb-2 uppercase tracking-tight">${config.app_title}</h1>
-                        <p class="text-xs text-gray-400 mb-8 uppercase tracking-widest font-bold">Akses Aplikasi Siswa</p>
+                        <!-- BERUBAH: Teks "Akses Aplikasi Siswa" diganti variabel schoolName -->
+                        <p class="text-xs text-gray-400 mb-8 uppercase tracking-widest font-bold">${schoolName}</p>
                         <form id="loginForm" class="space-y-4 text-left">
                             <div><label class="block mb-1 font-bold text-[10px] uppercase text-gray-400 px-2 tracking-widest text-left">Nama Lengkap Siswa</label><input type="text" id="nama" class="w-full px-5 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:border-emerald-500 transition-all uppercase font-bold text-slate-800" placeholder="Ketik Nama Anda"></div>
                             <div><label class="block mb-1 font-bold text-[10px] uppercase text-gray-400 px-2 tracking-widest text-left">Kelas</label><select id="kelas" class="w-full px-5 py-4 bg-slate-50 border-2 border-transparent rounded-2xl bg-white outline-none focus:border-emerald-500 transition-all font-bold uppercase text-slate-800">${opts}</select></div>
@@ -634,7 +650,6 @@
                 });
                 if (filtered.length === 0) { grid.innerHTML = `<div class="col-span-full p-12 bg-white rounded-2xl text-center text-gray-400 italic">Siswa tidak ditemukan.</div>`; return; }
                 grid.innerHTML = filtered.map(s => `<div class="bg-white p-5 rounded-2xl shadow-sm border hover:border-emerald-500 cursor-pointer transition-all student-card" data-n="${s.nama}" data-k="${s.kelas}"><div class="flex justify-between items-start"><div><h3 class="font-black text-gray-800 uppercase text-left">${s.nama}</h3><p class="text-xs font-bold text-emerald-600 mt-1 uppercase text-left">Kelas: ${s.kelas}</p></div><span class="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg font-bold border border-emerald-100 uppercase">Detail</span></div></div>`).join('');
-                // BERUBAH: Penambahan trim() saat klik kartu
                 grid.querySelectorAll('.student-card').forEach(c => {
                     c.onclick = () => showStudentDetailView({ nama: c.dataset.n.trim(), kelas: c.dataset.k.trim() }, data);
                 });
@@ -647,7 +662,6 @@
         }
 
         function showStudentDetailView(student, allData) {
-            // BERUBAH: Filter menggunakan == dan trim untuk akurasi String vs Number
             const studentRecords = allData.filter(r => 
                 r.nama.toString().trim() == student.nama && 
                 r.kelas.toString().trim() == student.kelas
@@ -694,7 +708,15 @@
             printWindow.document.write(html); printWindow.document.close();
         }
 
-        async function init() { if (!SCHOOL_ID) renderLanding(); else showLoginPage(); }
+        async function init() { 
+            if (!SCHOOL_ID) {
+                renderLanding(); 
+            } else {
+                // Menjalankan pencarian nama sekolah sebelum login siswa ditampilkan
+                await fetchCurrentSchoolName();
+                showLoginPage(); 
+            }
+        }
         init();
   </script>
  </body>
