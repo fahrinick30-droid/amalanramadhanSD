@@ -423,7 +423,6 @@
             await fetchGlobalSettings();
             const config = window.elementSdk.config;
             let opts = `<option value="">Pilih Kelas</option>`;
-            // BERUBAH: Menggunakan kelas 4, 5, 6 tanpa huruf
             ['4','5','6'].forEach(k => { 
                 opts += `<option value="${k}">Kelas ${k}</option>`; 
             });
@@ -614,7 +613,6 @@
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-md mb-6">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <!-- BERUBAH: Pilihan tingkatan disesuaikan menjadi 4, 5, 6 -->
                                 <div><label class="block text-[10px] font-black text-gray-400 mb-1 uppercase text-left tracking-widest">Tingkatan</label><select id="fTingkat" class="w-full p-2 border-2 rounded-xl outline-none focus:border-emerald-500 font-bold text-left"><option value="all">Semua</option><option value="4">Kelas 4</option><option value="5">Kelas 5</option><option value="6">Kelas 6</option></select></div>
                                 <div><label class="block text-[10px] font-black text-gray-400 mb-1 uppercase text-left tracking-widest">Kelas</label><select id="fKelas" class="w-full p-2 border-2 rounded-xl outline-none focus:border-emerald-500 font-bold text-left"><option value="all">Semua</option>${classList.map(k => `<option value="${k}">${k}</option>`).join('')}</select></div>
                                 <div><label class="block text-[10px] font-black text-gray-400 mb-1 uppercase text-left tracking-widest">Cari Nama</label><input type="text" id="fNama" class="w-full p-2 border-2 rounded-xl outline-none focus:border-emerald-500 font-bold text-left" placeholder="Ketik nama..."></div>
@@ -629,7 +627,6 @@
                 const kel = document.getElementById('fKelas').value;
                 const nam = document.getElementById('fNama').value.toLowerCase();
                 const filtered = studentList.filter(s => {
-                    // Logic startWith tetap jalan meskipun tanpa huruf
                     const m1 = ting === 'all' || s.kelas.startsWith(ting);
                     const m2 = kel === 'all' || s.kelas === kel;
                     const m3 = s.nama.toLowerCase().includes(nam);
@@ -637,7 +634,10 @@
                 });
                 if (filtered.length === 0) { grid.innerHTML = `<div class="col-span-full p-12 bg-white rounded-2xl text-center text-gray-400 italic">Siswa tidak ditemukan.</div>`; return; }
                 grid.innerHTML = filtered.map(s => `<div class="bg-white p-5 rounded-2xl shadow-sm border hover:border-emerald-500 cursor-pointer transition-all student-card" data-n="${s.nama}" data-k="${s.kelas}"><div class="flex justify-between items-start"><div><h3 class="font-black text-gray-800 uppercase text-left">${s.nama}</h3><p class="text-xs font-bold text-emerald-600 mt-1 uppercase text-left">Kelas: ${s.kelas}</p></div><span class="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg font-bold border border-emerald-100 uppercase">Detail</span></div></div>`).join('');
-                grid.querySelectorAll('.student-card').forEach(c => c.onclick = () => showStudentDetailView({ nama: c.dataset.n, kelas: c.dataset.k }, data));
+                // BERUBAH: Penambahan trim() saat klik kartu
+                grid.querySelectorAll('.student-card').forEach(c => {
+                    c.onclick = () => showStudentDetailView({ nama: c.dataset.n.trim(), kelas: c.dataset.k.trim() }, data);
+                });
             };
             document.getElementById('fTingkat').onchange = filterData;
             document.getElementById('fKelas').onchange = filterData;
@@ -647,7 +647,11 @@
         }
 
         function showStudentDetailView(student, allData) {
-            const data = allData.filter(r => r.nama === student.nama && r.kelas === student.kelas);
+            // BERUBAH: Filter menggunakan == dan trim untuk akurasi String vs Number
+            const studentRecords = allData.filter(r => 
+                r.nama.toString().trim() == student.nama && 
+                r.kelas.toString().trim() == student.kelas
+            );
             document.getElementById('app').innerHTML = `
                 <div class="min-h-screen bg-slate-50 p-6 text-slate-800 text-center">
                     <div class="max-w-4xl mx-auto text-center">
@@ -657,14 +661,14 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
                             ${categories.map(cat => {
-                                const items = data.filter(r => r.kategori === cat).sort((a,b) => parseInt(a.tanggal) - parseInt(b.tanggal));
+                                const items = studentRecords.filter(r => r.kategori === cat).sort((a,b) => parseInt(a.tanggal) - parseInt(b.tanggal));
                                 return `<div class="bg-white p-6 rounded-2xl shadow-sm border text-left text-center"><h3 class="font-black border-b pb-2 mb-4 text-slate-700 uppercase text-left">${getCategoryIcon(cat)} ${cat}</h3><div class="space-y-2 text-left">${items.length ? items.map(r => `<div class="text-[10px] p-3 bg-slate-50 rounded-lg border border-slate-100 uppercase"><b>HARI ${r.tanggal}:</b><br>${renderDetailText(cat, r.detail)}</div>`).join('') : '<p class="text-xs text-gray-300 text-center italic">Belum ada data.</p>'}</div></div>`;
                             }).join('')}
                         </div>
                     </div>
                 </div>`;
             document.getElementById('backAdmin').onclick = () => renderLaporanPanel(allRecords);
-            document.getElementById('cetakIndv').onclick = () => handleCetakIndividu(student, data);
+            document.getElementById('cetakIndv').onclick = () => handleCetakIndividu(student, studentRecords);
         }
 
         function handleCetakGlobal(ting, kel, allData) {
