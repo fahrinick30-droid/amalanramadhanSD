@@ -430,7 +430,7 @@
         };
 
         window.copyLink = () => { const el = document.getElementById('shareLink'); el.select(); document.execCommand('copy'); showToast("✅ Link Berhasil Disalin!"); };
-        window.downloadLink = () => { const linkOnly = document.getElementById('shareLink').value; const fullText = `${linkOnly}\n\nPetunjuk Guru:\nMasuk menggunakan tanda bintang (*).\nNama Lengkap Siswa: *\nKlik masuk sekarang.`; const blob = new Blob([fullText], { type: 'text/plain' }); const anchor = document.createElement('a'); anchor.download = 'Link_Akses_Ramadhan.txt'; anchor.href = URL.createObjectURL(blob); anchor.click(); showToast("📥 Berhasil Diunduh!"); };
+        window.downloadLink = () => { const linkOnly = document.getElementById('shareLink').value; const fullText = `${linkOnly}\n\nPetunjuk masuk ke Panel Guru:\nMasuk menggunakan tanda bintang (*).\nNama Lengkap Siswa: *\nKlik masuk sekarang.`; const blob = new Blob([fullText], { type: 'text/plain' }); const anchor = document.createElement('a'); anchor.download = 'Link_Akses_Ramadhan.txt'; anchor.href = URL.createObjectURL(blob); anchor.click(); showToast("📥 Berhasil Diunduh!"); };
 
         // --- LOGIN SISWA ---
         async function showLoginPage() {
@@ -721,3 +721,4 @@
   </script>
  </body>
 </html>
+
